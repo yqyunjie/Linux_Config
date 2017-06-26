@@ -1,5 +1,7 @@
-.Phony all
+
+
+.PHONY: all
 
 all:
-	chmod +x src/config_ubuntu
-	src/config_ubuntu
+	chmod +x src/config_ubuntu.sh
+	src/config_ubuntu.sh

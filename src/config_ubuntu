@@ -1,6 +1,0 @@
-#/bin/sh
-
-install_package() {
-
-	apt-get install 
-}
