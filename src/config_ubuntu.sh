@@ -1,14 +1,5 @@
 #!/bin/sh
 
-#Debug options
-#set -x
-echo off
-
-#includes
-CUR_DIR=$(cd `dirname $0`; pwd)
-echo including $CUR_DIR/switch.sh
-. $CUR_DIR/switch.sh
-
 print_info()
 {
 	str=$@
@@ -26,6 +17,16 @@ print_error()
 	str=$@
 	echo "\033[40;31;5m$str\033[0m"
 }
+
+
+#Debug options
+set -x
+#echo off
+
+#includes
+CUR_DIR=$(cd `dirname $0`; pwd)
+print_debug Including $CUR_DIR/switch.sh
+. $CUR_DIR/switch.sh
 
 configure_apt_get()
 {
@@ -104,7 +105,6 @@ expect_install_package_fail()
 # Install vim and configure
 setup_package_vim() 
 {
-	echo INSTALL_vim: $INSTALL_vim.
 	if [ "$INSTALL_vim" != "y\r" ];then
 		print_info Do NOT install vim
 		return 0
@@ -150,9 +150,37 @@ setup_package_python()
 	setup_package "python" "python"
 }
 
+append_line_into_file()
+{
+	file=$1
+	line=$2
+	if grep -Fxq "$line" $file
+	then
+		print_debug "Line \"$line\" NOT found!"
+	else
+		# code if not found
+		echo "$line" >> $file
+	fi
+}
+#
+setup_bashrc()
+{
+	if [ "$CONFIG_bashrc" != "y" ];then
+		return 0
+	fi
+	print_info Configuring bashrc...
+	cp $CUR_DIR/resource/bashrc /etc/bashrc
+	cp $CUR_DIR/resource/alias /etc/.alias
+	. /etc/bashrc
+	append_line_into_file "/etc/profile" ". /etc/bashrc"
+	# @todo copy the bashrc to specified user home folder
+}
 
 # Initialize
 init
+
+# Config bashrc
+setup_bashrc
 
 # Setting up vim
 setup_package_vim

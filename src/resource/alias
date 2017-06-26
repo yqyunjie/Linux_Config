@@ -1,0 +1,24 @@
+alias ..="cd .."  
+alias cdd="cd .."  
+alias cd..="cd .."  
+alias ...="cd ../.."  
+alias ....="cd ../../.."  
+alias .....="cd ../../../.."  
+alias -- -='cd -'  
+  
+alias cds='echo "`pwd`" > ~/.cdsave'  #cd save : save where i am  
+alias cdb='cd "`cat ~/.cdsave`"' 
+alias vi="vim"  
+alias grep="grep -rnE --color"  
+alias mkdir="mkdir -pv"  
+alias cp='cp -v'  
+alias cpr='cp -r'  
+alias mv='mv -v'  
+alias chmod='chmod -v --preserve-root'  
+alias chown='chown -v --preserve-root'  
+alias df="df -h"  
+alias du="du -h"  
+alias last="last -a"  
+alias free='free -m'  
+
+alias 1261='cd /repo/yunjiez/HD_R56_FDT1261/'

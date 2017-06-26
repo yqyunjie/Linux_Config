@@ -1,5 +1,6 @@
 #!/bin/sh
-CONFIG_network="n"
-INSTALL_vim="y"
-INSTALL_wireshark="y"
-INSTALL_python="y"
+export CONFIG_bashrc="y"
+export CONFIG_network="n"
+export INSTALL_vim='y'
+export INSTALL_wireshark="y"
+export INSTALL_python="y"

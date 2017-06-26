@@ -1,0 +1,22 @@
+# .bashrc
+
+# User specific aliases and functions
+#. /etc/bash_completion.d/mercurial.sh 
+. /etc/.alias
+
+##关于histroy命令的设置
+#shopt用于开启和关闭shell的特性，下面一行命令用于便面历史命令发生覆盖
+shopt -s histappend
+#设置历史命令最大能存储的条数
+export HISTSIZE=100000
+#设置历史命令存储文件的最大尺寸
+export HISTFILESIZE=409600
+#以下列表中的命令不写入历史命令列表
+export HISTIGNORE="&:ls:ll:la:pwd:history:id:uptime"
+#以下设置每次写入历史命令文件是，删除所有相同的历史记录，还可以设置为ignoredups，表示忽略重复的输入（和上一次的输入比较）
+export HISTCONTROL='erasedups'
+
+# User specific aliases and functions
+export PS1='[\[\e[32;40m\]\u@\W]\$ '
+
+#export PATH=$PATH:/opt/tools/broadcom/asb/crosstools-mips32-gcc-4.9.4-glibc/usr/bin/
