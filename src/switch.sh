@@ -1,6 +1,10 @@
 #!/bin/sh
-export CONFIG_bashrc="y"
-export CONFIG_network="n"
-export INSTALL_vim='y'
-export INSTALL_wireshark="y"
-export INSTALL_python="y"
+SWITCH_bashrc="n"
+SWITCH_network="n"
+SWITCH_vim='n'
+SWITCH_wireshark="n"
+SWITCH_python="n"
+SWITCH_screen="n"
+SWITCH_tmux="y"
+SWITCH_git="n"
+SWITCH_gcc="n"

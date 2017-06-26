@@ -27,6 +27,7 @@ set -x
 CUR_DIR=$(cd `dirname $0`; pwd)
 print_debug Including $CUR_DIR/switch.sh
 . $CUR_DIR/switch.sh
+. $CUR_DIR/variables.sh
 
 configure_apt_get()
 {
@@ -34,6 +35,7 @@ configure_apt_get()
     # @todo Configure apt-get source
 
     # @todo Configure proxy, if needed
+	export http_proxy=http://135.245.48.34:8000
 }
 
 configure_package_install_tool()
@@ -43,7 +45,7 @@ configure_package_install_tool()
 
 configure_network()
 {
-	if [ "$CONFIG_network" != "y\r" ];then
+	if [ "$SWITCH_network" != "y\r" ];then
 		return 0
 	fi
 	## @todo, make ip and etc configurable.
@@ -72,7 +74,7 @@ install_package()
 {
     package=$1
     print_info Installing package $package...
-    apt-get install $package
+    apt-get -c /etc/apt/apt.conf install $package
     return $?
 }
 
@@ -105,7 +107,7 @@ expect_install_package_fail()
 # Install vim and configure
 setup_package_vim() 
 {
-	if [ "$INSTALL_vim" != "y\r" ];then
+	if [ "$SWITCH_vim" != "y\r" ];then
 		print_info Do NOT install vim
 		return 0
 	else
@@ -122,7 +124,7 @@ setup_package_vim()
 # Install wireshark
 setup_package_wireshark()
 {
-	if [ "$INSTALL_wireshark" != "y" ];then
+	if [ "$SWITCH_wireshark" != "y" ];then
 		return 0
 	fi
 	
@@ -136,9 +138,6 @@ setup_package()
 {
 	name=$1
 	package=$2
-	if [ "$INSTALL_$1" != "y" ];then
-		return 0
-	fi
 	
 	print_info Setting up $1...
 	expect_install_package_success $2
@@ -147,9 +146,15 @@ setup_package()
 # Install python
 setup_package_python()
 {
+	if [ "$SWITCH_python" != "y" ];then
+		return 0
+	fi
 	setup_package "python" "python"
 }
 
+# Append a line into the specified file, if the line does not exist
+# Args: file: file which to be appended to
+#		line: A line which will be appended
 append_line_into_file()
 {
 	file=$1
@@ -162,10 +167,18 @@ append_line_into_file()
 		echo "$line" >> $file
 	fi
 }
+
+copy_resource_file()
+{
+	src_file=$1
+	dest=$2
+	src=$CUR_DIR/resource/$1
+	cp $src $dest
+}
 #
 setup_bashrc()
 {
-	if [ "$CONFIG_bashrc" != "y" ];then
+	if [ $SWITCH_bashrc != "y" ];then
 		return 0
 	fi
 	print_info Configuring bashrc...
@@ -176,11 +189,50 @@ setup_bashrc()
 	# @todo copy the bashrc to specified user home folder
 }
 
+setup_screen()
+{
+	if [ $SWITCH_screen != "y" ];then
+		return 0
+	fi
+	setup_package "screen" "screen"
+	copy_resource_file "screenrc" "/etc/screenrc"
+}
+
+setup_tmux()
+{
+	if [ $SWITCH_tmux != "y" ];then
+		return 0
+	fi
+	setup_package "tmux" "tmux"
+	
+	## @todo Configure the tmux
+	#copy_resource_file "screenrc" "/etc/screenrc"
+}
+
+setup_git()
+{
+	if [ $SWITCH_git != "y" ];then
+		return 0
+	fi
+	setup_package "git" "git"
+	
+	git config --global user.name "$CONFIG_git_user_name"
+	git config --global user.email "$CONFIG_git_user_email"
+	git config --global core.editor "$CONFIG_git_core_editor"
+	git config --global merge.tool "$CONFIG_git_merge_tool"
+	git config --global --list
+}
+
+setup_gcc()
+{
+	if [ $SWITCH_gcc != "y" ];then
+		return 0
+	fi
+	
+	setup_package "gcc" "gcc"
+}
 # Initialize
 init
-
-# Config bashrc
-setup_bashrc
 
 # Setting up vim
 setup_package_vim
@@ -190,5 +242,20 @@ setup_package_wireshark
 
 # Python
 setup_package_python
+
+# Screen
+setup_screen
+
+# tmux
+setup_tmux
+
+# Git
+setup_git
+
+# gcc
+setup_gcc
+
+# Config bashrc last ones
+setup_bashrc
 
 print_info "Config finished"
