@@ -35,7 +35,7 @@ configure_apt_get()
     # @todo Configure apt-get source
 
     # @todo Configure proxy, if needed
-	export http_proxy=http://135.245.48.34:8000
+	#export http_proxy=http://135.245.48.34:8000
 }
 
 configure_package_install_tool()
@@ -74,7 +74,7 @@ install_package()
 {
     package=$1
     print_info Installing package $package...
-    apt-get -c /etc/apt/apt.conf install $package
+    apt-get install $package
     return $?
 }
 
