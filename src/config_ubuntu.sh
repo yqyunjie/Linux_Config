@@ -25,9 +25,11 @@ set -x
 
 #includes
 CUR_DIR=$(cd `dirname $0`; pwd)
+ABS_HOME=`echo ~`
 print_debug Including $CUR_DIR/switch.sh
 . $CUR_DIR/switch.sh
 . $CUR_DIR/variables.sh
+
 
 configure_apt_get()
 {
@@ -74,8 +76,16 @@ install_package()
 {
     package=$1
     print_info Installing package $package...
-    apt-get install $package
+    apt-get --assume-yes install $package
     return $?
+}
+
+echoy_install()
+{
+	package=$1
+	print_info Installing package $package...
+	echo y | apt-get install $package
+	return $?
 }
 
 expect_install_package_success() 
@@ -107,7 +117,7 @@ expect_install_package_fail()
 # Install vim and configure
 setup_package_vim() 
 {
-	if [ "$SWITCH_vim" != "y\r" ];then
+	if [ "$SWITCH_vim" != "y" ];then
 		print_info Do NOT install vim
 		return 0
 	else
@@ -118,7 +128,8 @@ setup_package_vim()
     expect_install_package_success "vim"
     # Configure
     print_info Configuring vim...
-    ##@todo Call vim sub-dir script
+    cp -r $CUR_DIR/resource/vimrc-master ~/.vim_runtime
+    sh ~/.vim_runtime/install_awesome_vimrc.sh
 }
 
 # Install wireshark
@@ -152,28 +163,12 @@ setup_package_python()
 	setup_package "python" "python"
 }
 
-# Append a line into the specified file, if the line does not exist
-# Args: file: file which to be appended to
-#		line: A line which will be appended
-append_line_into_file()
-{
-	file=$1
-	line=$2
-	if grep -Fxq "$line" $file
-	then
-		print_debug "Line \"$line\" NOT found!"
-	else
-		# code if not found
-		echo "$line" >> $file
-	fi
-}
-
 copy_resource_file()
 {
 	src_file=$1
 	dest=$2
 	src=$CUR_DIR/resource/$1
-	cp $src $dest
+	cp -f $src $dest
 }
 #
 setup_bashrc()
@@ -184,9 +179,31 @@ setup_bashrc()
 	print_info Configuring bashrc...
 	cp $CUR_DIR/resource/bashrc /etc/bashrc
 	cp $CUR_DIR/resource/alias /etc/.alias
-	. /etc/bashrc
+    
+#	. /etc/bashrc
 	append_line_into_file "/etc/profile" ". /etc/bashrc"
+    
 	# @todo copy the bashrc to specified user home folder
+#    cp $CUR_DIR/resource/bashrc $ABS_HOME/.bashrc
+#    cp $CUR_DIR/resource/alias $ABS_HOME/.alias
+#    append_line_into_file "$ABS_HOME/.profile" ". $ABS_HOME/.bashrc"
+}
+
+# Append a line into the specified file, if the line does not exist
+# Args: file: file which to be appended to
+#		line: A line which will be appended
+append_line_into_file()
+{
+	file="$1"
+	line="$2"
+    print_debug "Appending line $line into file $file"
+	if grep -qFx "$line" "$file"
+	then
+		print_debug "Line \"$line\" NOT found!"
+	else
+		# insert line if not found
+		echo -e "$line" >> "$file"
+	fi
 }
 
 setup_screen()
@@ -223,6 +240,28 @@ setup_git()
 	git config --global --list
 }
 
+setup_eclipse()
+{
+	if [ $SWITCH_eclipse != "y" ];then
+		return 0
+	fi
+	
+	setup_package "eclipse" "eclipse"
+	## @todo
+}
+
+setup_openssh_server()
+{
+	if [ $SWITCH_openssh_server != "y" ];then
+		return 0
+	fi
+	
+	setup_package "openssh-server" "openssh-server"
+    
+    cp /etc/ssh/sshd_config /etc/ssh/sshd_config.bk
+    copy_resource_file sshd_config /etc/ssh/sshd_config
+}
+
 setup_gcc()
 {
 	if [ $SWITCH_gcc != "y" ];then
@@ -231,8 +270,94 @@ setup_gcc()
 	
 	setup_package "gcc" "gcc"
 }
+
+setup_php()
+{
+	if [ $SWITCH_php != "y" ];then
+		return 0
+	fi
+	
+	setup_package "php" "php"
+	setup_package "php-gd" "php-gd"
+	setup_package "php-curl" "php-curl"
+	setup_package "php-cli" "php-cli"
+	setup_package "php-cgi" "php-cgi"
+	setup_package "libapache2-mod-php" "libapache2-mod-php"
+}
+
+setup_apache2()
+{
+	if [ $SWITCH_apache2 != "y" ];then
+		return 0
+	fi
+	
+	setup_package "apache2" "apache2"
+	
+	## @todo
+}
+
+setup_samba()
+{
+	if [ $SWITCH_samba != "y" ];then
+		return 0
+	fi
+	
+	setup_package "samba" "samba"
+	setup_package "smbclient" "smbclient"
+	
+	## configure
+    cp /etc/samba/smb.conf /etc/samba/smb.conf.bk
+    copy_resource_file smb.conf /etc/samba/smb.conf
+    /etc/init.d/samba restart
+}
+
+setup_tree()
+{
+	if [ $SWITCH_tree != "y" ];then
+		return 0
+	fi
+	
+	setup_package "tree" "tree"
+}
+
+setup_autoconf()
+{
+	if [ $SWITCH_autoconf != "y" ];then
+		return 0
+	fi
+	
+	setup_package "autoconf" "autoconf"
+}
+
+setup_wine()
+{
+	if [ $SWITCH_wine != "y" ];then
+		return 0
+	fi
+	
+	setup_package "wine-stable" "wine-stable"
+}
+
+setup_perl()
+{
+	if [ $SWITCH_perl != "y" ];then
+		return 0
+	fi
+	
+	setup_package "perl" "perl"
+}
+
+#######################################################################
 # Initialize
 init
+
+# Install tcl and expect for the interactive operation
+print_info "Installing tcl and expect for the interactive operation"
+echoy_install "tcl"
+echoy_install "expect"
+
+# Setting up perl
+setup_perl
 
 # Setting up vim
 setup_package_vim
@@ -242,6 +367,8 @@ setup_package_wireshark
 
 # Python
 setup_package_python
+
+setup_openssh_server
 
 # Screen
 setup_screen
@@ -254,6 +381,18 @@ setup_git
 
 # gcc
 setup_gcc
+
+setup_eclipse
+
+setup_apache2
+
+setup_php
+
+setup_tree
+
+setup_autoconf
+
+setup_wine
 
 # Config bashrc last ones
 setup_bashrc
